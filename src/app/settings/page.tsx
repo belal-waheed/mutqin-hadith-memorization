@@ -26,12 +26,15 @@ import {
   LogOut,
   User,
   RefreshCw,
+  Volume2,
+  Square,
 } from 'lucide-react';
 import { signIn, signOut } from 'next-auth/react';
 import { useUserState } from '@/hooks/useUserState';
 import { saveUserState } from '@/lib/user-storage';
 import { useFontSize, FONT_SIZES, type FontSize } from '@/hooks/useFontSize';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAudioTTS } from '@/hooks/useAudioTTS';
 
 const FONT_OPTIONS = [
   { id: 'font-hadith', label: 'أميري', fontClass: 'font-hadith', desc: 'أصيل ومضبوط' },
@@ -68,9 +71,18 @@ export default function SettingsPage() {
     toggleReminder,
     sendTestNotification,
   } = useNotifications();
+  const { play: playTTS, stop: stopTTS, isPlaying: isTTSPlaying } = useAudioTTS();
   const [mounted, setMounted] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
+
+  const handleVoiceTest = (gender: 'male' | 'female') => {
+    if (isTTSPlaying) {
+      stopTTS();
+    } else {
+      playTTS('«إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى»', gender);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -440,6 +452,96 @@ export default function SettingsPage() {
           <span className="text-[11px] font-ui text-primary-700 dark:text-primary-400 block pt-1">
             [صحيح البخاري — كتاب بدء الوحي]
           </span>
+        </div>
+      </section>
+
+      {/* Section: Reciter Voice Preference */}
+      <section className="bg-surface-100 dark:bg-surface-900 rounded-2xl border border-surface-300 dark:border-surface-800 p-5 shadow-xs space-y-4 font-ui">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-surface-900 dark:text-surface-100 font-bold text-base">
+            <Volume2 className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            <h2>صوت القارئ (الاستماع للأحاديث)</h2>
+          </div>
+        </div>
+        <p className="text-xs text-surface-600 dark:text-surface-400 leading-relaxed font-ui">
+          اختر النبرة الصوتية المفضلة عند النقر على أيقونة الاستماع لمتون الأحاديث:
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <button
+            type="button"
+            onClick={() => {
+              updateState(prev => ({ ...prev, reciterGender: 'male' }));
+            }}
+            className={`flex items-center justify-between p-3.5 rounded-xl border text-right transition-all cursor-pointer ${
+              (userState.reciterGender || 'male') === 'male'
+                ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/60 dark:border-primary-600 text-surface-900 dark:text-surface-100 shadow-xs ring-1 ring-primary-500'
+                : 'border-surface-300 dark:border-surface-800 bg-surface-50 dark:bg-surface-850/60 hover:bg-surface-200/60 dark:hover:bg-surface-800 text-surface-700 dark:text-surface-300'
+            }`}
+          >
+            <div>
+              <span className="block font-bold text-sm text-surface-900 dark:text-surface-100">
+                صوت رجل (قارئ)
+              </span>
+              <span className="block text-[11px] text-surface-500 dark:text-surface-400 mt-0.5">
+                نبرة وقورة وخاشعة لقراءة الأحاديث (موصى به)
+              </span>
+            </div>
+            {(userState.reciterGender || 'male') === 'male' && (
+              <div className="w-5 h-5 rounded-full bg-primary-600 text-white flex items-center justify-center shrink-0">
+                <Check className="w-3 h-3 stroke-[3]" />
+              </div>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              updateState(prev => ({ ...prev, reciterGender: 'female' }));
+            }}
+            className={`flex items-center justify-between p-3.5 rounded-xl border text-right transition-all cursor-pointer ${
+              userState.reciterGender === 'female'
+                ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/60 dark:border-primary-600 text-surface-900 dark:text-surface-100 shadow-xs ring-1 ring-primary-500'
+                : 'border-surface-300 dark:border-surface-800 bg-surface-50 dark:bg-surface-850/60 hover:bg-surface-200/60 dark:hover:bg-surface-800 text-surface-700 dark:text-surface-300'
+            }`}
+          >
+            <div>
+              <span className="block font-bold text-sm text-surface-900 dark:text-surface-100">
+                صوت امرأة (قارئة)
+              </span>
+              <span className="block text-[11px] text-surface-500 dark:text-surface-400 mt-0.5">
+                نبرة واضحة ومخارج هادئة
+              </span>
+            </div>
+            {userState.reciterGender === 'female' && (
+              <div className="w-5 h-5 rounded-full bg-primary-600 text-white flex items-center justify-center shrink-0">
+                <Check className="w-3 h-3 stroke-[3]" />
+              </div>
+            )}
+          </button>
+        </div>
+
+        <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-surface-200 dark:border-surface-800">
+          <span className="text-xs text-surface-500 dark:text-surface-400">
+            معاينة النبرة الصوتية المختارة:
+          </span>
+          <button
+            type="button"
+            onClick={() => handleVoiceTest(userState.reciterGender || 'male')}
+            className="self-start sm:self-auto py-1.5 px-3 rounded-lg bg-surface-200 dark:bg-surface-800 hover:bg-surface-300 dark:hover:bg-surface-700 text-surface-800 dark:text-surface-200 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            {isTTSPlaying ? (
+              <>
+                <Square className="w-3.5 h-3.5 fill-current text-primary-600 dark:text-primary-400" />
+                <span>إيقاف الصوت</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
+                <span>استمع لعينة من صوت القارئ</span>
+              </>
+            )}
+          </button>
         </div>
       </section>
 

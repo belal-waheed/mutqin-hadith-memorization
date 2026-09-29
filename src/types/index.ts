@@ -81,6 +81,7 @@ export interface UserState {
   hasCompletedOnboarding: boolean;
   fontFamily?: string;
   showTashkeel?: boolean;
+  reciterGender?: 'male' | 'female';
 }
 
 export interface LevelInfo {

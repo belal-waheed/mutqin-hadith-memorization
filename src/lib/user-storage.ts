@@ -26,6 +26,7 @@ export function getDefaultUserState(): UserState {
     hasCompletedOnboarding: false,
     fontFamily: 'font-hadith',
     showTashkeel: true,
+    reciterGender: 'male',
   };
 }
 
@@ -68,6 +69,9 @@ export function getUserState(): UserState {
     }
     if (typeof state.showTashkeel === 'undefined') {
       state.showTashkeel = true;
+    }
+    if (typeof state.reciterGender === 'undefined') {
+      state.reciterGender = 'male';
     }
 
     const updatedState = verifyAndRepairStreak(state);
