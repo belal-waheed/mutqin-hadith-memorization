@@ -1,12 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
+const HF_SPACE_URL = 'https://innoai-edge-tts-text-to-speech.hf.space';
+const MALE_VOICE = 'ar-SA-HamedNeural - ar-SA (Male)';
+
+async function synthesizeViaHFSpace(text: string): Promise<Buffer> {
+  const callRes = await fetch(`${HF_SPACE_URL}/gradio_api/call/tts_interface`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      data: [text, MALE_VOICE, 0, 0],
+    }),
+    signal: AbortSignal.timeout(10000),
+  });
+
+  if (!callRes.ok) {
+    throw new Error(`HF Space call initiation failed with status ${callRes.status}`);
+  }
+
+  const { event_id } = await callRes.json();
+  if (!event_id) {
+    throw new Error('No event_id returned from HF Space');
+  }
+
+  const sseRes = await fetch(`${HF_SPACE_URL}/gradio_api/call/tts_interface/${event_id}`, {
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!sseRes.ok) {
+    throw new Error(`HF Space SSE failed with status ${sseRes.status}`);
+  }
+
+  const sseText = await sseRes.text();
+  let audioUrl: string | null = null;
+
+  for (const line of sseText.split('\n')) {
+    if (line.startsWith('data: ')) {
+      try {
+        const parsed = JSON.parse(line.substring(6));
+        if (Array.isArray(parsed) && parsed[0]?.url) {
+          audioUrl = parsed[0].url;
+          break;
+        }
+      } catch {
+        // ignore non-json data lines
+      }
+    }
+  }
+
+  if (!audioUrl) {
+    throw new Error('No audio URL found in HF Space SSE stream');
+  }
+
+  const audioRes = await fetch(audioUrl, { signal: AbortSignal.timeout(10000) });
+  if (!audioRes.ok) {
+    throw new Error(`Failed to download audio file: status ${audioRes.status}`);
+  }
+
+  const arrayBuffer = await audioRes.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
 export async function GET(req: NextRequest) {
   const text = req.nextUrl.searchParams.get('text');
-  
+
   if (!text || typeof text !== 'string' || text.trim().length === 0) {
     return NextResponse.json({ error: 'Missing text parameter' }, { status: 400 });
   }
@@ -15,45 +74,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Text too long' }, { status: 400 });
   }
 
-  let tts: MsEdgeTTS | null = null;
   try {
-    console.log('[TTS] Initializing MsEdgeTTS...');
-    tts = new MsEdgeTTS({ enableLogger: true });
+    const audioBuffer = await synthesizeViaHFSpace(text.trim());
 
-    console.log('[TTS] Setting metadata (timeout 7s)...');
-    const metaPromise = tts.setMetadata(
-      'ar-SA-HamedNeural',
-      OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3
-    );
-
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('MsEdgeTTS setMetadata timeout (7s) - connection dropped or blocked by upstream')), 7000)
-    );
-
-    await Promise.race([metaPromise, timeoutPromise]);
-    console.log('[TTS] Metadata set successfully!');
-
-    console.log('[TTS] Creating stream...');
-    const { audioStream } = tts.toStream(text, { rate: 0.9 });
-
-    const chunks: Buffer[] = [];
-    await new Promise<void>((resolve, reject) => {
-      const streamTimeout = setTimeout(() => reject(new Error('Audio stream timeout (10s)')), 10000);
-      audioStream.on('data', (chunk: Buffer) => chunks.push(chunk));
-      audioStream.on('end', () => {
-        clearTimeout(streamTimeout);
-        resolve();
-      });
-      audioStream.on('error', (err: Error) => {
-        clearTimeout(streamTimeout);
-        reject(err);
-      });
-    });
-
-    const audioBuffer = Buffer.concat(chunks);
-    console.log(`[TTS] Audio generated successfully! Size: ${audioBuffer.length} bytes`);
-
-    return new NextResponse(audioBuffer, {
+    return new NextResponse(new Uint8Array(audioBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
@@ -63,12 +87,10 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[TTS] Generation failed:', message);
+    console.error('[TTS] Generation error:', message);
     return NextResponse.json(
       { error: 'TTS generation failed', details: message },
       { status: 502 }
     );
-  } finally {
-    tts?.close();
   }
 }
