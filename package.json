@@ -10,7 +10,9 @@
     "data:process": "node scripts/process-data.mjs"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.3",
     "@neondatabase/serverless": "^1.1.0",
+    "@serwist/next": "^9.5.12",
     "canvas-confetti": "^1.9.4",
     "drizzle-orm": "^0.45.3",
     "lucide-react": "^1.48.0",
@@ -19,17 +21,22 @@
     "next-themes": "^0.4.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "serwist": "^9.5.12",
     "ts-fsrs": "^5.4.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^18.0.4",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.3.7",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

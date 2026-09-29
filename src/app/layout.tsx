@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { Amiri, IBM_Plex_Sans_Arabic } from 'next/font/google';
 import './globals.css';
+import { SessionProvider } from 'next-auth/react';
 import { BottomNav } from '@/components/bottom-nav';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SyncProvider } from '@/components/sync-provider';
 
 const amiri = Amiri({
   weight: ['400', '700'],
@@ -21,9 +23,14 @@ const ibmPlexArabic = IBM_Plex_Sans_Arabic({
 export const metadata: Metadata = {
   title: 'مُتقِن — حفظ وضبط أحاديث الصحيحين',
   description: 'تطبيق لحفظ متون صحيحي البخاري ومسلم وفق خوارزمية التكرار المتباعد (FSRS)',
-  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    title: 'مُتقِن',
+    statusBarStyle: 'default',
+  },
   icons: {
     icon: '/favicon.ico',
+    apple: '/icon',
   },
 };
 
@@ -54,17 +61,21 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-surface-50 text-surface-900 dark:bg-surface-950 dark:text-surface-100 font-ui antialiased min-h-screen flex flex-col selection:bg-primary-200 selection:text-primary-950 dark:selection:bg-primary-900 dark:selection:text-primary-100 transition-colors duration-200">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main className="flex-1 pb-20 max-w-lg w-full mx-auto px-4 sm:px-6">
-            {children}
-          </main>
-          <BottomNav />
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SyncProvider>
+              <main className="flex-1 pb-20 max-w-lg w-full mx-auto px-4 sm:px-6">
+                {children}
+              </main>
+              <BottomNav />
+            </SyncProvider>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

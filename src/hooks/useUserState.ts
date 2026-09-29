@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import type { UserState } from '@/types';
 import {
   getUserState,
@@ -14,8 +15,12 @@ import {
   completeOnboarding,
 } from '@/lib/user-storage';
 import type { Grade } from '@/lib/fsrs-service';
+import { useSync, type SyncStatus } from '@/components/sync-provider';
 
 export function useUserState() {
+  const { data: session, status: authStatus } = useSession();
+  const sync = useSync();
+
   const [userState, setUserState] = useState<UserState>(getDefaultUserState());
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -87,5 +92,11 @@ export function useUserState() {
     resetProgress,
     finishOnboarding,
     refreshState,
+    // NextAuth session and cloud sync properties
+    session,
+    authStatus,
+    syncStatus: (sync?.syncStatus ?? 'idle') as SyncStatus,
+    isOnline: sync?.isOnline ?? true,
+    syncNow: sync?.syncNow,
   };
 }
