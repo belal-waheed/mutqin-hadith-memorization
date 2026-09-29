@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sparkles,
@@ -43,9 +43,15 @@ const GOAL_CHOICES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { finishOnboarding, enrollHadith } = useUserState();
+  const { finishOnboarding, enrollHadith, userState, isLoaded } = useUserState();
   const [selectedGoal, setSelectedGoal] = useState<number>(3);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded && userState.hasCompletedOnboarding) {
+      router.replace('/');
+    }
+  }, [isLoaded, userState.hasCompletedOnboarding, router]);
 
   const handleStartJourney = () => {
     setIsSubmitting(true);
