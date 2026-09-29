@@ -166,7 +166,40 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
           (localState.totalReviews || 0) > 0;
 
         if (cloudHasData && localHasData) {
-          // Conflict condition: both cloud and local possess progress data
+          // Heuristic 1: Identical states (common on page refresh)
+          const isIdentical =
+            cloudState.totalReviews === localState.totalReviews &&
+            cloudState.currentStreak === localState.currentStreak &&
+            Object.keys(cloudState.cards || {}).length === Object.keys(localState.cards || {}).length &&
+            (cloudState.bookmarkedHadithIds || []).length === (localState.bookmarkedHadithIds || []).length;
+
+          if (isIdentical) {
+            setSyncStatus('synced');
+            return;
+          }
+
+          // Heuristic 2: Local is strictly ahead (e.g. offline progress)
+          const localIsAhead =
+            localState.totalReviews > (cloudState.totalReviews || 0) &&
+            Object.keys(localState.cards || {}).length >= Object.keys(cloudState.cards || {}).length;
+
+          if (localIsAhead) {
+            await pushState(localState);
+            return;
+          }
+
+          // Heuristic 3: Cloud is strictly ahead (e.g. switched devices)
+          const cloudIsAhead =
+            (cloudState.totalReviews || 0) > localState.totalReviews &&
+            Object.keys(cloudState.cards || {}).length >= Object.keys(localState.cards || {}).length;
+
+          if (cloudIsAhead) {
+            saveUserState(cloudState);
+            setSyncStatus('synced');
+            return;
+          }
+
+          // Genuine Conflict: Metrics are mixed or divergent, ask the user
           setConflict({ localState, cloudState });
           setSyncStatus('idle');
         } else if (cloudHasData && !localHasData) {
