@@ -1,26 +1,124 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-hadith: var(--font-amiri), serif;
+  --font-ui: var(--font-ibm-plex-arabic), sans-serif;
+
+  /* Warm Gold / Amber Primary */
+  --color-primary-50:  #fbf8ee;
+  --color-primary-100: #f5eed3;
+  --color-primary-200: #ebdca7;
+  --color-primary-300: #dfc572;
+  --color-primary-400: #d4ae46;
+  --color-primary-500: #b8860b;
+  --color-primary-600: #9e7107;
+  --color-primary-700: #7d5408;
+  --color-primary-800: #66430d;
+  --color-primary-900: #54360e;
+  --color-primary-950: #311d04;
+
+  /* Surface / Parchment Palette - Warm Browns & Parchment */
+  --color-surface-50:  #fcfaf6;
+  --color-surface-100: #f6f1e7;
+  --color-surface-200: #eee6d6;
+  --color-surface-300: #ded3bc;
+  --color-surface-400: #c4b496;
+  --color-surface-500: #a89775;
+  --color-surface-600: #8a7a5c;
+  --color-surface-700: #6e6049;
+  --color-surface-800: #574c3b;
+  --color-surface-850: #383126;
+  --color-surface-900: #241f17;
+  --color-surface-950: #16130e;
+
+  /* Accent Muted Emerald */
+  --color-emerald-accent: #2e6930;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbf9f4;
+  --foreground: #29241b;
+  --hadith-font-size: 1.375rem;
+  --hadith-line-height: 2.2;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root[class~="dark"], .dark {
+  --background: #16130e;
+  --foreground: #f6f1e7;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-font-size="sm"] {
+  --hadith-font-size: 1.15rem;
+  --hadith-line-height: 2.0;
+}
+
+[data-font-size="md"] {
+  --hadith-font-size: 1.375rem;
+  --hadith-line-height: 2.2;
+}
+
+[data-font-size="lg"] {
+  --hadith-font-size: 1.65rem;
+  --hadith-line-height: 2.35;
+}
+
+[data-font-size="xl"] {
+  --hadith-font-size: 1.95rem;
+  --hadith-line-height: 2.5;
+}
+
+html {
+  font-family: var(--font-ibm-plex-arabic), system-ui, -apple-system, sans-serif;
+  direction: rtl;
+  text-align: right;
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.font-hadith {
+  font-family: var(--font-amiri), serif;
+  font-size: var(--hadith-font-size);
+  line-height: var(--hadith-line-height);
+}
+
+.font-ui {
+  font-family: var(--font-ibm-plex-arabic), sans-serif;
+}
+
+/* Custom Scrollbar for smooth reading */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f6f1e7;
+}
+::-webkit-scrollbar-thumb {
+  background: #ded3bc;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c4b496;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1c1813;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #383126;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #574c3b;
 }

@@ -1,0 +1,20 @@
+{
+  "name": "مُتقِن — حفظ وضبط أحاديث الصحيحين",
+  "short_name": "مُتقِن",
+  "description": "تطبيق لحفظ متون صحيحي البخاري ومسلم وفق خوارزمية التكرار المتباعد (FSRS)",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf9f4",
+  "theme_color": "#b8860b",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
