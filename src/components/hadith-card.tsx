@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import type { Hadith, QuizMode } from '@/types';
-import { Bookmark, BookmarkCheck, Copy, Check, BookOpen, ChevronDown, Info, Volume2, Square } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Copy, Check, BookOpen, ChevronDown, Info, Volume2, Square, Share2 } from 'lucide-react';
 import { useUserState } from '@/hooks/useUserState';
 import { useAudioTTS } from '@/hooks/useAudioTTS';
 
@@ -93,6 +93,30 @@ export function HadithCard({
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy hadith:', err);
+    }
+  };
+
+  const handleShare = async () => {
+    const bookParam = hadith.bookId === 1 ? 'bukhari' : hadith.bookId === 2 ? 'muslim' : 'bukhari';
+    const url = `https://mutqinn.vercel.app/hadith/${bookParam}/${hadith.id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'مُتقِن',
+          text: 'اقرأ هذا الحديث..',
+          url,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('تم نسخ الرابط!');
+      } catch (err) {
+        console.error('Failed to copy', err);
+      }
     }
   };
 
@@ -371,6 +395,15 @@ export function HadithCard({
             ) : (
               <Volume2 className="w-4 h-4" />
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShare}
+            title="مشاركة الحديث"
+            className="p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-800 transition-colors cursor-pointer"
+          >
+            <Share2 className="w-4 h-4" />
           </button>
 
           <button
