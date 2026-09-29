@@ -202,22 +202,28 @@ export function HadithCard({
 
   // Render Hadith Content
   const renderContent = () => {
+    // Determine the raw text based on user preference
+    const rawArabic = userState.showTashkeel === false ? stripTashkeel(hadith.arabic) : hadith.arabic;
+    const customFont = userState.fontFamily || 'font-hadith';
+
     // If not in a quiz mode, or already revealed
     if (!effectiveMode || isRevealed) {
       // If revealed after blanks mode, highlight the missing blanks so the user can verify
       if (isRevealed && effectiveMode === 'blanks' && blankIndices.size > 0) {
         return (
-          <p className="font-hadith text-surface-950 dark:text-surface-50 leading-loose text-justify selection:bg-primary-200 dark:selection:bg-primary-900">
+          <p className={`${customFont} text-surface-950 dark:text-surface-50 leading-loose text-justify selection:bg-primary-200 dark:selection:bg-primary-900`}>
             {words.map((w, idx) => {
               const isBlank = blankIndices.has(idx);
+              // Clean word if no tashkeel is desired
+              const displayWord = userState.showTashkeel === false ? stripTashkeel(w) : w;
               return (
                 <span key={idx}>
                   {isBlank ? (
                     <span className="font-bold text-primary-800 dark:text-primary-200 bg-primary-100/90 dark:bg-primary-950/90 px-1.5 py-0.5 rounded-md border border-primary-300 dark:border-primary-700 underline decoration-primary-400">
-                      {w}
+                      {displayWord}
                     </span>
                   ) : (
-                    w
+                    displayWord
                   )}{' '}
                 </span>
               );
@@ -228,10 +234,16 @@ export function HadithCard({
 
       // If revealed after narrator mode, highlight the narrator chain
       if (isRevealed && effectiveMode === 'narrator' && narratorWordCount > 0) {
-        const narratorText = words.slice(0, narratorWordCount).join(' ');
-        const restText = words.slice(narratorWordCount).join(' ');
+        let narratorText = words.slice(0, narratorWordCount).join(' ');
+        let restText = words.slice(narratorWordCount).join(' ');
+        
+        if (userState.showTashkeel === false) {
+          narratorText = stripTashkeel(narratorText);
+          restText = stripTashkeel(restText);
+        }
+
         return (
-          <p className="font-hadith text-surface-950 dark:text-surface-50 leading-loose text-justify selection:bg-primary-200 dark:selection:bg-primary-900">
+          <p className={`${customFont} text-surface-950 dark:text-surface-50 leading-loose text-justify selection:bg-primary-200 dark:selection:bg-primary-900`}>
             <span className="font-bold text-primary-800 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/70 px-1.5 py-0.5 rounded border-b-2 border-primary-500">
               {narratorText}
             </span>{' '}
@@ -242,8 +254,8 @@ export function HadithCard({
 
       // Standard revealed full text
       return (
-        <p className="font-hadith text-surface-950 dark:text-surface-50 leading-loose text-justify selection:bg-primary-200 dark:selection:bg-primary-900">
-          {hadith.arabic}
+        <p className={`${customFont} text-surface-950 dark:text-surface-50 leading-loose text-justify selection:bg-primary-200 dark:selection:bg-primary-900`}>
+          {rawArabic}
         </p>
       );
     }
@@ -253,9 +265,10 @@ export function HadithCard({
       case 'blanks': {
         return (
           <div className="space-y-4">
-            <p className="font-hadith text-surface-900 dark:text-surface-100 leading-loose text-justify">
+            <p className={`${customFont} text-surface-900 dark:text-surface-100 leading-loose text-justify`}>
               {words.map((w, idx) => {
                 const isBlank = blankIndices.has(idx);
+                const displayWord = userState.showTashkeel === false ? stripTashkeel(w) : w;
                 return (
                   <span key={idx}>
                     {isBlank ? (
@@ -263,7 +276,7 @@ export function HadithCard({
                         [ ـــــ ]
                       </span>
                     ) : (
-                      w
+                      displayWord
                     )}{' '}
                   </span>
                 );
@@ -281,10 +294,13 @@ export function HadithCard({
       }
 
       case 'narrator': {
-        const restText = words.slice(narratorWordCount).join(' ');
+        let restText = words.slice(narratorWordCount).join(' ');
+        if (userState.showTashkeel === false) {
+          restText = stripTashkeel(restText);
+        }
         return (
           <div className="space-y-4">
-            <p className="font-hadith text-surface-900 dark:text-surface-100 leading-loose text-justify">
+            <p className={`${customFont} text-surface-900 dark:text-surface-100 leading-loose text-justify`}>
               <span className="inline-block px-3 py-1 mx-1 font-ui font-bold text-xs text-primary-800 dark:text-primary-300 bg-primary-100 dark:bg-primary-950 rounded-lg border border-primary-300 dark:border-primary-700 select-none shadow-2xs">
                 [ الراوي ]
               </span>
@@ -303,10 +319,13 @@ export function HadithCard({
 
       case 'partial':
       default: {
-        const promptPart = words.slice(0, partialSplitIndex).join(' ');
+        let promptPart = words.slice(0, partialSplitIndex).join(' ');
+        if (userState.showTashkeel === false) {
+          promptPart = stripTashkeel(promptPart);
+        }
         return (
           <div className="space-y-4">
-            <p className="font-hadith text-surface-900 dark:text-surface-100 leading-loose text-justify">
+            <p className={`${customFont} text-surface-900 dark:text-surface-100 leading-loose text-justify`}>
               {promptPart}...
             </p>
             <button

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Amiri, IBM_Plex_Sans_Arabic } from 'next/font/google';
+import { Amiri, IBM_Plex_Sans_Arabic, Noto_Naskh_Arabic, Cairo } from 'next/font/google';
 import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 import { BottomNav } from '@/components/bottom-nav';
@@ -17,6 +17,20 @@ const ibmPlexArabic = IBM_Plex_Sans_Arabic({
   weight: ['300', '400', '500', '600', '700'],
   subsets: ['arabic'],
   variable: '--font-ibm-plex-arabic',
+  display: 'swap',
+});
+
+const notoNaskh = Noto_Naskh_Arabic({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['arabic'],
+  variable: '--font-naskh',
+  display: 'swap',
+});
+
+const cairo = Cairo({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['arabic'],
+  variable: '--font-cairo',
   display: 'swap',
 });
 
@@ -50,7 +64,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${amiri.variable} ${ibmPlexArabic.variable}`}
+      className={`${amiri.variable} ${ibmPlexArabic.variable} ${notoNaskh.variable} ${cairo.variable}`}
       suppressHydrationWarning
     >
       <head>

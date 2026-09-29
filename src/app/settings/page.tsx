@@ -29,8 +29,15 @@ import {
 } from 'lucide-react';
 import { signIn, signOut } from 'next-auth/react';
 import { useUserState } from '@/hooks/useUserState';
+import { saveUserState } from '@/lib/user-storage';
 import { useFontSize, FONT_SIZES, type FontSize } from '@/hooks/useFontSize';
 import { useNotifications } from '@/hooks/useNotifications';
+
+const FONT_OPTIONS = [
+  { id: 'font-hadith', label: 'أميري', fontClass: 'font-hadith', desc: 'أصيل ومضبوط' },
+  { id: 'font-naskh', label: 'نسخ', fontClass: 'font-naskh', desc: 'واضح ومريح' },
+  { id: 'font-cairo', label: 'كيرو', fontClass: 'font-cairo', desc: 'عصري وسلس' },
+];
 
 const GOAL_OPTIONS = [
   { value: 1, label: 'حديث واحد', desc: 'تدرج مريح وخطوات ثابتة' },
@@ -369,13 +376,66 @@ export default function SettingsPage() {
           })}
         </div>
 
+        {/* Font Family Selector */}
+        <div className="pt-3 border-t border-surface-200 dark:border-surface-800 mt-4">
+          <p className="text-xs text-surface-600 dark:text-surface-400 font-ui mb-2">نوع الخط:</p>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: 'font-hadith', label: 'أميري' },
+              { id: 'font-naskh', label: 'نسخ' },
+              { id: 'font-cairo', label: 'كايرو' }
+            ].map(font => {
+              const isSelected = userState.fontFamily === font.id || (!userState.fontFamily && font.id === 'font-hadith');
+              return (
+                <button
+                  key={font.id}
+                  type="button"
+                  onClick={() => updateState(prev => ({ ...prev, fontFamily: font.id }))}
+                  className={`py-2 rounded-xl border text-center transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/60 dark:border-primary-600 text-primary-800 dark:text-primary-300 font-bold shadow-xs'
+                      : 'border-surface-300 dark:border-surface-800 bg-surface-50 dark:bg-surface-850/60 hover:bg-surface-200/60 dark:hover:bg-surface-800 text-surface-700 dark:text-surface-300'
+                  }`}
+                >
+                  <span className={`block text-sm ${font.id}`}>{font.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Tashkeel Toggle */}
+        <div className="pt-3 border-t border-surface-200 dark:border-surface-800 mt-2 flex items-center justify-between">
+          <div>
+            <p className="font-ui font-bold text-sm text-surface-900 dark:text-surface-100">إظهار التشكيل</p>
+            <p className="text-[10px] text-surface-500 dark:text-surface-400 mt-0.5">تفعيل أو إيقاف الحركات على الحروف</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={userState.showTashkeel !== false}
+            onClick={() => updateState(prev => ({ ...prev, showTashkeel: prev.showTashkeel === false ? true : false }))}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-surface-900 ${
+              userState.showTashkeel !== false ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-700'
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                userState.showTashkeel !== false ? '-translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
         {/* Live Preview Box */}
         <div className="mt-3 p-4 rounded-xl bg-surface-50 dark:bg-surface-950 border border-surface-200 dark:border-surface-800 space-y-1">
           <span className="text-[11px] font-ui text-surface-500 dark:text-surface-400 block mb-1">
             معاينة حية للنص:
           </span>
-          <p className="font-hadith text-surface-950 dark:text-surface-100 leading-relaxed text-justify">
-            «إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى»
+          <p className={`${userState.fontFamily || 'font-hadith'} text-surface-950 dark:text-surface-100 leading-relaxed text-justify`}>
+            {userState.showTashkeel === false 
+              ? '«إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى»'
+              : '«إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى»'}
           </p>
           <span className="text-[11px] font-ui text-primary-700 dark:text-primary-400 block pt-1">
             [صحيح البخاري — كتاب بدء الوحي]

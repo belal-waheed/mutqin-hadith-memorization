@@ -7,96 +7,63 @@ const activeStopCallbacks = new Set<() => void>();
 
 export function useAudioTTS() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      setIsSupported(true);
-    }
-  }, []);
+  const [isSupported, setIsSupported] = useState(true); // Always true since we use custom backend
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const stop = useCallback(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    utteranceRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
     setIsPlaying(false);
   }, []);
 
   const play = useCallback((text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
     // Stop any other active TTS playback instance across the app
     activeStopCallbacks.forEach(stopCallback => stopCallback());
     activeStopCallbacks.clear();
 
-    window.speechSynthesis.cancel();
-
-    // Register this instance's stop callback
     const currentStop = () => {
-      setIsPlaying(false);
+      stop();
     };
     activeStopCallbacks.add(currentStop);
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utteranceRef.current = utterance;
+    // Use our custom Edge TTS API backend
+    const url = `/api/tts?text=${encodeURIComponent(text)}`;
+    const audio = new Audio(url);
+    audioRef.current = audio;
 
-    // Pick the best Arabic voice available
-    const voices = window.speechSynthesis.getVoices();
-    const arabicVoices = voices.filter(v => v.lang.toLowerCase().startsWith('ar'));
-    
-    let bestVoice = null;
-    
-    // 1. Try to find Egyptian Arabic (ar-EG)
-    bestVoice = arabicVoices.find(v => v.lang.includes('EG') || v.name.includes('Egypt') || v.name.includes('Salma') || v.name.includes('Shakir') || v.name.includes('Hoda'));
-    
-    // 2. Try to find Saudi Arabic (ar-SA) or Google/Microsoft premium
-    if (!bestVoice) {
-      bestVoice = arabicVoices.find(v => v.lang.includes('SA') || v.name.includes('Google') || v.name.includes('Microsoft'));
-    }
-    
-    // 3. Fallback to any Arabic voice
-    if (!bestVoice && arabicVoices.length > 0) {
-      bestVoice = arabicVoices[0];
-    }
-
-    if (bestVoice) {
-      utterance.voice = bestVoice;
-      utterance.lang = bestVoice.lang;
-    } else {
-      utterance.lang = 'ar-EG'; // Force Egyptian locale request
-    }
-
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
-
-    utterance.onstart = () => {
+    audio.onplay = () => {
       setIsPlaying(true);
     };
 
-    utterance.onend = () => {
+    audio.onended = () => {
       setIsPlaying(false);
       activeStopCallbacks.delete(currentStop);
-      utteranceRef.current = null;
+      audioRef.current = null;
     };
 
-    utterance.onerror = () => {
+    audio.onerror = () => {
       setIsPlaying(false);
       activeStopCallbacks.delete(currentStop);
-      utteranceRef.current = null;
+      audioRef.current = null;
+      console.error('Audio playback failed');
     };
 
-    window.speechSynthesis.speak(utterance);
-  }, []);
+    audio.play().catch(e => {
+      console.error('Failed to play audio:', e);
+      setIsPlaying(false);
+    });
+  }, [stop]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (utteranceRef.current && typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      stop();
+      activeStopCallbacks.delete(stop);
     };
-  }, []);
+  }, [stop]);
 
   return {
     play,

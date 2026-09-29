@@ -79,6 +79,8 @@ export interface UserState {
   bookmarkedHadithIds: number[];
   activeHadithIds: number[];   // Currently memorizing/in queue
   hasCompletedOnboarding: boolean;
+  fontFamily?: string;
+  showTashkeel?: boolean;
 }
 
 export interface LevelInfo {

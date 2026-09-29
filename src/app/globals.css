@@ -4,6 +4,8 @@
 
 @theme {
   --font-hadith: var(--font-amiri), serif;
+  --font-naskh: var(--font-naskh), serif;
+  --font-cairo: var(--font-cairo), sans-serif;
   --font-ui: var(--font-ibm-plex-arabic), sans-serif;
 
   /* Warm Gold / Amber Primary */
@@ -88,6 +90,18 @@ body {
 
 .font-hadith {
   font-family: var(--font-amiri), serif;
+  font-size: var(--hadith-font-size);
+  line-height: var(--hadith-line-height);
+}
+
+.font-naskh {
+  font-family: var(--font-naskh), serif;
+  font-size: var(--hadith-font-size);
+  line-height: var(--hadith-line-height);
+}
+
+.font-cairo {
+  font-family: var(--font-cairo), sans-serif;
   font-size: var(--hadith-font-size);
   line-height: var(--hadith-line-height);
 }

@@ -24,6 +24,8 @@ export function getDefaultUserState(): UserState {
     bookmarkedHadithIds: [],
     activeHadithIds: [],
     hasCompletedOnboarding: false,
+    fontFamily: 'font-hadith',
+    showTashkeel: true,
   };
 }
 
@@ -58,6 +60,14 @@ export function getUserState(): UserState {
         (state.currentStreak && state.currentStreak > 0);
       state.hasCompletedOnboarding = Boolean(hasExistingProgress);
       saveUserState(state);
+    }
+
+    // Gracefully handle existing users without fontFamily or showTashkeel
+    if (typeof state.fontFamily === 'undefined') {
+      state.fontFamily = 'font-hadith';
+    }
+    if (typeof state.showTashkeel === 'undefined') {
+      state.showTashkeel = true;
     }
 
     const updatedState = verifyAndRepairStreak(state);
