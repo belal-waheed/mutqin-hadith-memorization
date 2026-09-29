@@ -14,13 +14,23 @@ export const size = {
 
 export const contentType = 'image/png';
 
-// Load Amiri font locally from project filesystem with in-memory cache
+// Load Amiri font locally from project filesystem or via public URL with in-memory cache
 let cachedFontData: ArrayBuffer | null = null;
-function getAmiriFont(): ArrayBuffer {
+async function getAmiriFont(): Promise<ArrayBuffer> {
   if (cachedFontData) return cachedFontData;
-  const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Amiri-Regular.ttf');
-  const buffer = fs.readFileSync(fontPath);
-  cachedFontData = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  try {
+    const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Amiri-Regular.ttf');
+    if (fs.existsSync(fontPath)) {
+      const buffer = fs.readFileSync(fontPath);
+      cachedFontData = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+      return cachedFontData;
+    }
+  } catch {
+    // Fall back to fetch if filesystem is sandboxed
+  }
+
+  const res = await fetch('https://mutqinn.vercel.app/fonts/Amiri-Regular.ttf');
+  cachedFontData = await res.arrayBuffer();
   return cachedFontData;
 }
 
@@ -34,7 +44,7 @@ export default async function Image(props: { params: Promise<{ book: string; id:
   const text = hadith ? hadith.arabic.substring(0, 300) + (hadith.arabic.length > 300 ? '...' : '') : 'حديث غير موجود';
   const subtitle = hadith ? `${hadith.bookName} - ${hadith.chapterTitle}` : '';
 
-  const fontData = getAmiriFont();
+  const fontData = await getAmiriFont();
 
   return new ImageResponse(
     (
