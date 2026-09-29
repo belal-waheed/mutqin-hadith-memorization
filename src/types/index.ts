@@ -1,5 +1,7 @@
 import type { Card as FSRSCard, State, Rating } from 'ts-fsrs';
 
+export type QuizMode = 'partial' | 'blanks' | 'narrator';
+
 export interface Hadith {
   id: number;
   globalId: string;

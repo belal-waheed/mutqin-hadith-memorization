@@ -7,6 +7,7 @@ import { useCards } from '@/hooks/useCards';
 import { useStreak } from '@/hooks/useStreak';
 import { LEVELS } from '@/types';
 import { ProgressGarden } from '@/components/progress-garden';
+import { ReviewHeatmap } from '@/components/review-heatmap';
 
 export default function ProgressPage() {
   const { userState, isLoaded: userLoaded } = useUserState();
@@ -107,6 +108,9 @@ export default function ProgressPage() {
           </span>
         </div>
       </div>
+
+      {/* Review Heatmap Calendar */}
+      <ReviewHeatmap reviewLogs={userState.reviewLogs} />
 
       {/* Progress Garden Component */}
       <ProgressGarden />

@@ -17,9 +17,12 @@ import {
   Check,
   ChevronLeft,
   BookOpen,
+  Bell,
+  BellRing,
 } from 'lucide-react';
 import { useUserState } from '@/hooks/useUserState';
 import { useFontSize, FONT_SIZES, type FontSize } from '@/hooks/useFontSize';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const GOAL_OPTIONS = [
   { value: 1, label: 'حديث واحد', desc: 'تدرج مريح وخطوات ثابتة' },
@@ -33,6 +36,13 @@ export default function SettingsPage() {
   const { userState, updateState, resetProgress, isLoaded } = useUserState();
   const { theme, setTheme } = useTheme();
   const { fontSize, setFontSize } = useFontSize();
+  const {
+    isSupported: notificationsSupported,
+    permission: notificationPermission,
+    isEnabled: reminderEnabled,
+    toggleReminder,
+    sendTestNotification,
+  } = useNotifications();
   const [mounted, setMounted] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
@@ -220,7 +230,70 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Section 4: Onboarding Tour Shortcut */}
+      {/* Section 4: Daily Wird Reminder (Notifications) */}
+      <section className="bg-surface-100 dark:bg-surface-900 rounded-2xl border border-surface-300 dark:border-surface-800 p-5 shadow-xs space-y-4 font-ui">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary-100 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center text-primary-700 dark:text-primary-400 shrink-0">
+              {reminderEnabled ? <BellRing className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+            </div>
+            <div>
+              <h2 className="font-bold text-base text-surface-900 dark:text-surface-100">
+                التذكير اليومي للوِرد
+              </h2>
+              <p className="text-xs text-surface-600 dark:text-surface-400">
+                تنبيهات المتصفح لتذكيرك بوِرد المراجعة وحماية تتابعك اليومي
+              </p>
+            </div>
+          </div>
+
+          {/* Toggle Switch */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={reminderEnabled}
+            onClick={toggleReminder}
+            disabled={!notificationsSupported}
+            title={!notificationsSupported ? 'المتصفح لا يدعم الإشعارات' : reminderEnabled ? 'تعطيل التذكير' : 'تفعيل التذكير'}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-surface-900 ${
+              reminderEnabled ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-700'
+            } ${!notificationsSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                reminderEnabled ? '-translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Warning if denied in browser permissions */}
+        {notificationPermission === 'denied' && (
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs leading-relaxed">
+            تنبيه: تم حظر الإشعارات في إعدادات المتصفح. لتفعيل التذكير، يرجى النقر على أيقونة الإعدادات أو القفل في شريط العنوان بالأعلى والسماح بالإشعارات لموقع مُتقِن.
+          </div>
+        )}
+
+        {/* Info when enabled */}
+        {reminderEnabled && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-surface-200 dark:border-surface-800 text-xs">
+            <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+              <Check className="w-4 h-4" />
+              <span>التذكير اليومي مفعل</span>
+            </span>
+
+            <button
+              type="button"
+              onClick={sendTestNotification}
+              className="self-start sm:self-auto py-1.5 px-3 rounded-lg bg-surface-200 dark:bg-surface-800 hover:bg-surface-300 dark:hover:bg-surface-700 text-surface-800 dark:text-surface-200 font-medium transition-colors cursor-pointer"
+            >
+              إرسال إشعار تجريبي الآن
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* Section 5: Onboarding Tour Shortcut */}
       <section className="bg-surface-100 dark:bg-surface-900 rounded-2xl border border-surface-300 dark:border-surface-800 p-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-primary-100 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 flex items-center justify-center text-primary-700 dark:text-primary-400">
@@ -245,7 +318,7 @@ export default function SettingsPage() {
         </Link>
       </section>
 
-      {/* Section 5: Danger Zone - Reset Progress */}
+      {/* Section 6: Danger Zone - Reset Progress */}
       <section className="bg-red-50/60 dark:bg-red-950/20 rounded-2xl border border-red-200 dark:border-red-900/50 p-5 shadow-xs space-y-3">
         <div className="flex items-center gap-2 text-red-900 dark:text-red-300 font-ui font-bold text-base">
           <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />

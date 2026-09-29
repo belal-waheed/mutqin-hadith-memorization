@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { X, Flame, Shield, Award, RotateCcw, Home, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { X, Flame, Shield, Award, RotateCcw, Home, CheckCircle2, ChevronLeft, PenLine, User, BookOpen } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useUserState } from '@/hooks/useUserState';
 import { useCards } from '@/hooks/useCards';
@@ -12,12 +12,19 @@ import { HadithCard } from '@/components/hadith-card';
 import { ReviewButtons } from '@/components/review-buttons';
 import { fetchStarterHadiths, getHadithById } from '@/lib/hadith-service';
 import { initNewCard, type Grade } from '@/lib/fsrs-service';
-import type { Hadith, SerializedCard } from '@/types';
+import type { Hadith, SerializedCard, QuizMode } from '@/types';
 
 interface QueueItem {
   hadith: Hadith;
   card: SerializedCard;
   isNew: boolean;
+  quizMode: QuizMode;
+}
+
+const QUIZ_MODES: QuizMode[] = ['partial', 'blanks', 'narrator'];
+
+function getRandomQuizMode(): QuizMode {
+  return QUIZ_MODES[Math.floor(Math.random() * QUIZ_MODES.length)];
 }
 
 export default function WirdPage() {
@@ -57,6 +64,7 @@ export default function WirdPage() {
               hadith,
               card: progress.card,
               isNew: false,
+              quizMode: getRandomQuizMode(),
             });
           }
         }
@@ -73,6 +81,7 @@ export default function WirdPage() {
               hadith,
               card: initNewCard(),
               isNew: true,
+              quizMode: getRandomQuizMode(),
             });
           }
         }
@@ -85,6 +94,7 @@ export default function WirdPage() {
               hadith,
               card: existingProgress ? existingProgress.card : initNewCard(),
               isNew: !existingProgress,
+              quizMode: getRandomQuizMode(),
             });
           }
         }
@@ -254,12 +264,42 @@ export default function WirdPage() {
         </Link>
       </div>
 
-      {/* Main Hadith Card (With Partial Reveal) */}
+      {/* Main Hadith Card With Quiz Mode */}
       {currentItem && (
-        <div className="space-y-4">
+        <div className="space-y-3">
+          {/* Mode Hint Banner */}
+          <div className="bg-primary-50/80 dark:bg-primary-950/60 rounded-2xl border border-primary-200 dark:border-primary-800/80 p-3 sm:p-3.5 flex items-center justify-between font-ui text-xs shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-primary-100 dark:bg-primary-900/80 text-primary-800 dark:text-primary-300 flex items-center justify-center shrink-0">
+                {currentItem.quizMode === 'blanks' && <PenLine className="w-4 h-4" />}
+                {currentItem.quizMode === 'narrator' && <User className="w-4 h-4" />}
+                {currentItem.quizMode === 'partial' && <BookOpen className="w-4 h-4" />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm text-primary-950 dark:text-primary-100">
+                    {currentItem.quizMode === 'blanks' && 'أكمل الكلمات الناقصة'}
+                    {currentItem.quizMode === 'narrator' && 'تذكر من راوي الحديث'}
+                    {currentItem.quizMode === 'partial' && 'أكمل بقية متن الحديث'}
+                  </span>
+                  <span className="text-[10px] font-semibold bg-primary-200/70 dark:bg-primary-900/70 text-primary-800 dark:text-primary-200 px-2 py-0.5 rounded-full border border-primary-300/60 dark:border-primary-700/60">
+                    {currentItem.quizMode === 'blanks' && 'اختبار الفراغات'}
+                    {currentItem.quizMode === 'narrator' && 'اختبار الإسناد'}
+                    {currentItem.quizMode === 'partial' && 'اختبار المتن'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-surface-600 dark:text-surface-400 mt-0.5">
+                  {currentItem.quizMode === 'blanks' && 'تم إخفاء بعض كلمات المتن، استذكرها في سرك ثم انقر للتحقق'}
+                  {currentItem.quizMode === 'narrator' && 'اقرأ متن الحديث وتذكر الصحابي راوي هذا الحديث عن النبي ﷺ'}
+                  {currentItem.quizMode === 'partial' && 'اقرأ صدر الحديث واستذكر بقيته في صدرك ثم انقر للمقارنة'}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <HadithCard
             hadith={currentItem.hadith}
-            isPartialReveal={true}
+            quizMode={currentItem.quizMode}
             isRevealed={isRevealed}
             onReveal={() => setIsRevealed(true)}
             showActions={false}
