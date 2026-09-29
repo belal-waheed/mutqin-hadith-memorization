@@ -1,0 +1,8 @@
+feat(tts): rebuild TTS system with edge neural male voice
+
+- Created `/api/tts/route.ts` as a proxy using `msedge-tts` package.
+- Uses `ar-SA-HamedNeural` (natural Saudi male voice with tashkeel).
+- Refactored `useAudioTTS.ts` to consume the proxy via standard HTML Audio.
+- Removed gender toggles from `settings/page.tsx` as we now have a single, high-quality male voice.
+- Removed dead `ws` dependency and old Web Speech API references.
+- Updated `UserState` to remove `reciterGender`.
