@@ -41,15 +41,30 @@ export function useAudioTTS() {
     const utterance = new SpeechSynthesisUtterance(text);
     utteranceRef.current = utterance;
 
-    // Pick an Arabic voice if available
+    // Pick the best Arabic voice available
     const voices = window.speechSynthesis.getVoices();
-    const arabicVoice = voices.find(v => v.lang.toLowerCase().startsWith('ar'));
+    const arabicVoices = voices.filter(v => v.lang.toLowerCase().startsWith('ar'));
+    
+    let bestVoice = null;
+    
+    // 1. Try to find Egyptian Arabic (ar-EG)
+    bestVoice = arabicVoices.find(v => v.lang.includes('EG') || v.name.includes('Egypt') || v.name.includes('Salma') || v.name.includes('Shakir') || v.name.includes('Hoda'));
+    
+    // 2. Try to find Saudi Arabic (ar-SA) or Google/Microsoft premium
+    if (!bestVoice) {
+      bestVoice = arabicVoices.find(v => v.lang.includes('SA') || v.name.includes('Google') || v.name.includes('Microsoft'));
+    }
+    
+    // 3. Fallback to any Arabic voice
+    if (!bestVoice && arabicVoices.length > 0) {
+      bestVoice = arabicVoices[0];
+    }
 
-    if (arabicVoice) {
-      utterance.voice = arabicVoice;
-      utterance.lang = arabicVoice.lang;
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+      utterance.lang = bestVoice.lang;
     } else {
-      utterance.lang = 'ar-SA';
+      utterance.lang = 'ar-EG'; // Force Egyptian locale request
     }
 
     utterance.rate = 0.9;
