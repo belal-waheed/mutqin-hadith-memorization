@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import type { Hadith, QuizMode } from '@/types';
-import { Bookmark, BookmarkCheck, Copy, Check, BookOpen } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Copy, Check, BookOpen, ChevronDown, Info, Volume2, Square } from 'lucide-react';
 import { useUserState } from '@/hooks/useUserState';
+import { useAudioTTS } from '@/hooks/useAudioTTS';
 
 interface HadithCardProps {
   hadith: Hadith;
@@ -59,6 +60,24 @@ export function HadithCard({
 }: HadithCardProps) {
   const { userState, toggleBookmark } = useUserState();
   const [copied, setCopied] = useState(false);
+  const [isExplanationOpen, setIsExplanationOpen] = useState(false);
+  const { play: playTTS, stop: stopTTS, isPlaying: isTTSPlaying } = useAudioTTS();
+
+  const explanation = useMemo(() => {
+    if (hadith.explanation) return hadith.explanation;
+    if (hadith.id === 1) {
+      return 'هذا الحديث أصل عظيم من أصول الإسلام. يبيّن النبي ﷺ أن قبول الأعمال وثوابها مرتبط بالنية الصالحة، فمن قصد بعمله وجه الله قُبِل، ومن قصد الدنيا أو رياء الناس فلا أجر له في الآخرة.';
+    }
+    return 'الشرح المبسط لهذا الحديث قيد المراجعة والإضافة قريباً إن شاء الله.';
+  }, [hadith.explanation, hadith.id]);
+
+  const handleToggleAudio = () => {
+    if (isTTSPlaying) {
+      stopTTS();
+    } else {
+      playTTS(hadith.arabic);
+    }
+  };
 
   // Determine effective mode: prioritize quizMode prop, fallback to partial if isPartialReveal
   const effectiveMode: QuizMode | null = quizMode ?? (isPartialReveal ? 'partial' : null);
@@ -299,9 +318,61 @@ export function HadithCard({
       {/* Hadith Text Body */}
       <div className="my-2">{renderContent()}</div>
 
+      {/* Hadith Explanation Accordion */}
+      <div className="pt-3 mt-3 border-t border-surface-200/80 dark:border-surface-800/80">
+        <button
+          type="button"
+          onClick={() => setIsExplanationOpen(prev => !prev)}
+          className="flex items-center justify-between w-full text-xs font-ui font-medium text-surface-600 dark:text-surface-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors cursor-pointer py-1"
+          aria-expanded={isExplanationOpen}
+        >
+          <span className="flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
+            <span>شرح الحديث</span>
+          </span>
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+              isExplanationOpen ? 'rotate-180 text-primary-600 dark:text-primary-400' : ''
+            }`}
+          />
+        </button>
+
+        <div
+          className={`grid transition-[grid-template-rows] duration-200 ease-out ${
+            isExplanationOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="pt-2">
+              <p className="p-3 text-xs sm:text-sm text-surface-700 dark:text-surface-300 font-ui leading-relaxed bg-surface-200/50 dark:bg-surface-800/40 rounded-xl border border-surface-200/80 dark:border-surface-800/80 text-justify">
+                {explanation}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Footer Action Icons */}
       {showActions && (
-        <div className="flex items-center justify-end gap-2 pt-3 mt-4 border-t border-surface-200 dark:border-surface-800">
+        <div className="flex items-center justify-end gap-2 pt-3 mt-3 border-t border-surface-200 dark:border-surface-800">
+          <button
+            type="button"
+            onClick={handleToggleAudio}
+            title={isTTSPlaying ? 'إيقاف التلاوة' : 'استماع صوتي للحديث'}
+            aria-label={isTTSPlaying ? 'إيقاف التلاوة' : 'استماع صوتي للحديث'}
+            className={`p-2 rounded-lg transition-colors cursor-pointer ${
+              isTTSPlaying
+                ? 'text-primary-700 dark:text-primary-300 bg-primary-100 dark:bg-primary-950/80 ring-1 ring-primary-400'
+                : 'text-surface-500 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-800'
+            }`}
+          >
+            {isTTSPlaying ? (
+              <Square className="w-4 h-4 fill-current" />
+            ) : (
+              <Volume2 className="w-4 h-4" />
+            )}
+          </button>
+
           <button
             type="button"
             onClick={handleCopy}

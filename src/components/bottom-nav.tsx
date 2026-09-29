@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Compass, Award, Settings } from 'lucide-react';
+import { Home, BookOpen, Compass, Award, Settings, Route } from 'lucide-react';
 
 const NAV_ITEMS = [
   {
@@ -14,6 +14,11 @@ const NAV_ITEMS = [
     href: '/wird',
     label: 'الوِرد',
     icon: BookOpen,
+  },
+  {
+    href: '/paths',
+    label: 'المسارات',
+    icon: Route,
   },
   {
     href: '/browse',
@@ -42,7 +47,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface-100/90 dark:bg-surface-900/90 backdrop-blur-md border-t border-surface-200 dark:border-surface-800 transition-colors">
-      <div className="max-w-md mx-auto flex items-center justify-around h-16 px-2 sm:px-4">
+      <div className="max-w-md mx-auto flex items-center justify-around h-16 px-1 sm:px-3">
         {NAV_ITEMS.map(item => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -57,7 +62,7 @@ export function BottomNav() {
               }`}
             >
               <Icon className={`w-5 h-5 mb-1 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
-              <span className="text-[11px] sm:text-xs font-ui tracking-wide">{item.label}</span>
+              <span className="text-[10px] sm:text-[11px] font-ui tracking-tight whitespace-nowrap">{item.label}</span>
             </Link>
           );
         })}

@@ -11,6 +11,7 @@ export interface Hadith {
   chapterTitle: string;
   idInBook: number;
   arabic: string;
+  explanation?: string;
 }
 
 export interface Chapter {
