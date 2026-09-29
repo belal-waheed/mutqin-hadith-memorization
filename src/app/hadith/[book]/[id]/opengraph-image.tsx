@@ -1,4 +1,6 @@
 import { ImageResponse } from 'next/og';
+import fs from 'node:fs';
+import path from 'node:path';
 import bukhari from '@/../public/data/bukhari.json';
 import muslim from '@/../public/data/muslim.json';
 
@@ -12,6 +14,16 @@ export const size = {
 
 export const contentType = 'image/png';
 
+// Load Amiri font locally from project filesystem with in-memory cache
+let cachedFontData: ArrayBuffer | null = null;
+function getAmiriFont(): ArrayBuffer {
+  if (cachedFontData) return cachedFontData;
+  const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Amiri-Regular.ttf');
+  const buffer = fs.readFileSync(fontPath);
+  cachedFontData = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  return cachedFontData;
+}
+
 export default async function Image(props: { params: Promise<{ book: string; id: string }> }) {
   const params = await props.params;
   const { book, id } = params;
@@ -22,10 +34,7 @@ export default async function Image(props: { params: Promise<{ book: string; id:
   const text = hadith ? hadith.arabic.substring(0, 300) + (hadith.arabic.length > 300 ? '...' : '') : 'حديث غير موجود';
   const subtitle = hadith ? `${hadith.bookName} - ${hadith.chapterTitle}` : '';
 
-  // Fetch Amiri font
-  const fontData = await fetch(
-    'https://github.com/google/fonts/raw/main/ofl/amiri/Amiri-Regular.ttf'
-  ).then((res) => res.arrayBuffer());
+  const fontData = getAmiriFont();
 
   return new ImageResponse(
     (

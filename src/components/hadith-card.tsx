@@ -60,6 +60,7 @@ export function HadithCard({
 }: HadithCardProps) {
   const { userState, toggleBookmark } = useUserState();
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
   const { play: playTTS, stop: stopTTS, isPlaying: isTTSPlaying } = useAudioTTS();
 
@@ -100,20 +101,21 @@ export function HadithCard({
     const bookParam = hadith.bookId === 1 ? 'bukhari' : hadith.bookId === 2 ? 'muslim' : 'bukhari';
     const url = `https://mutqinn.vercel.app/hadith/${bookParam}/${hadith.id}`;
     
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
           title: 'مُتقِن',
-          text: 'اقرأ هذا الحديث..',
+          text: `«${hadith.arabic.substring(0, 100)}...»`,
           url,
         });
       } catch (err) {
-        console.error('Error sharing:', err);
+        // User cancelled share or failed
       }
-    } else {
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(url);
-        alert('تم نسخ الرابط!');
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
       } catch (err) {
         console.error('Failed to copy', err);
       }
@@ -419,10 +421,18 @@ export function HadithCard({
           <button
             type="button"
             onClick={handleShare}
-            title="مشاركة الحديث"
-            className="p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-800 transition-colors cursor-pointer"
+            title={shared ? 'تم نسخ رابط الحديث' : 'مشاركة الحديث'}
+            className={`p-2 rounded-lg transition-colors cursor-pointer ${
+              shared
+                ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60'
+                : 'text-surface-500 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-800'
+            }`}
           >
-            <Share2 className="w-4 h-4" />
+            {shared ? (
+              <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <Share2 className="w-4 h-4" />
+            )}
           </button>
 
           <button

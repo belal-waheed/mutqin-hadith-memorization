@@ -10,11 +10,27 @@ export function useAudioTTS() {
   const [isSupported, setIsSupported] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       setIsSupported(true);
-      // Ensure voices are loaded
-      window.speechSynthesis.getVoices();
+
+      const updateVoices = () => {
+        const available = window.speechSynthesis.getVoices();
+        if (available && available.length > 0) {
+          setVoicesLoaded(true);
+        }
+      };
+
+      updateVoices();
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+
+      return () => {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.onvoiceschanged = null;
+        }
+      };
     }
   }, []);
 
