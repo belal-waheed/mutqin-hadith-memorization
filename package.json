@@ -10,9 +10,12 @@
     "data:process": "node scripts/process-data.mjs"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "canvas-confetti": "^1.9.4",
+    "drizzle-orm": "^0.45.3",
     "lucide-react": "^1.48.0",
     "next": "16.3.7",
+    "next-auth": "^5.0.0-beta.32",
     "next-themes": "^0.4.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
