@@ -14,22 +14,22 @@ export const size = {
 
 export const contentType = 'image/png';
 
-// Load Amiri font locally from project filesystem or via public URL with in-memory cache
+// Load Cairo font locally or via fontsource CDN (Cairo is fully supported by Satori OpenType engine)
 let cachedFontData: ArrayBuffer | null = null;
-async function getAmiriFont(): Promise<ArrayBuffer> {
+async function getCairoFont(): Promise<ArrayBuffer> {
   if (cachedFontData) return cachedFontData;
   try {
-    const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Amiri-Regular.ttf');
+    const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Cairo-Regular.ttf');
     if (fs.existsSync(fontPath)) {
       const buffer = fs.readFileSync(fontPath);
       cachedFontData = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
       return cachedFontData;
     }
   } catch {
-    // Fall back to fetch if filesystem is sandboxed
+    // Fall back to CDN fetch if filesystem is sandboxed
   }
 
-  const res = await fetch('https://mutqinn.vercel.app/fonts/Amiri-Regular.ttf');
+  const res = await fetch('https://cdn.jsdelivr.net/fontsource/fonts/cairo@latest/arabic-400-normal.ttf');
   cachedFontData = await res.arrayBuffer();
   return cachedFontData;
 }
@@ -44,7 +44,7 @@ export default async function Image(props: { params: Promise<{ book: string; id:
   const text = hadith ? hadith.arabic.substring(0, 300) + (hadith.arabic.length > 300 ? '...' : '') : 'حديث غير موجود';
   const subtitle = hadith ? `${hadith.bookName} - ${hadith.chapterTitle}` : '';
 
-  const fontData = await getAmiriFont();
+  const fontData = await getCairoFont();
 
   return new ImageResponse(
     (
@@ -59,7 +59,7 @@ export default async function Image(props: { params: Promise<{ book: string; id:
           justifyContent: 'center',
           padding: '40px',
           border: '16px solid #d4c4a8',
-          fontFamily: '"Amiri"',
+          fontFamily: '"Cairo"',
         }}
       >
         <div
@@ -118,7 +118,7 @@ export default async function Image(props: { params: Promise<{ book: string; id:
       ...size,
       fonts: [
         {
-          name: 'Amiri',
+          name: 'Cairo',
           data: fontData,
           style: 'normal',
         },
