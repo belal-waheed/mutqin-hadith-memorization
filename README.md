@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mutqin (مُتقِن) - Spaced Repetition Hadith Memorization App
 
-## Getting Started
+Mutqin is an open-source spaced repetition application built with Next.js and the FSRS algorithm for Muslims to systematically memorize authentic Hadiths (Sahih Al-Bukhari and Muslim). It solves the problem of forgetting memorized texts by calculating the optimal daily review schedule for each user.
 
-First, run the development server:
+## 🛠️ Technical Specifications
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+| Component | Technology / Implementation |
+| :--- | :--- |
+| **Framework** | Next.js 15 (App Router), React 19 |
+| **Styling** | Tailwind CSS v4, Lucide Icons |
+| **Algorithm** | `ts-fsrs` (Free Spaced Repetition Scheduler) |
+| **Database** | Neon Serverless Postgres, Drizzle ORM |
+| **Authentication** | Auth.js v5 (NextAuth) via Google OAuth |
+| **Offline Support** | `@serwist/next` PWA, LocalStorage Sync Engine |
+| **Data Source** | Static JSON (14k+ Sahih Hadiths) |
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Core Features
+- **Offline-First Architecture**: Works seamlessly without an internet connection. Progress syncs automatically to the cloud once online.
+- **Advanced Spaced Repetition (FSRS)**: Replaces outdated Leitner/Anki SM-2 algorithms with the state-of-the-art FSRS scheduling algorithm.
+- **Curriculum Paths (المسارات)**: Themed learning tracks (e.g., Nawawi's 40, Book of Faith) rather than random selection.
+- **Dynamic Quiz Modes**: Fights review fatigue using partial-reveal, fill-in-the-blanks, and narrator-guessing modes.
+- **Arabic Web Speech TTS**: Built-in text-to-speech for correct pronunciation and dictation.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🧠 Frequently Asked Questions (Q&A)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Q: How does the offline synchronization work without data loss?**
+A: Mutqin utilizes a Lazy Auth, offline-first approach. Guests store their `userState` (FSRS cards, review logs, streaks) in `localStorage`. Upon authenticating with Google, a conflict resolution modal prompts the user to either push their local data to the Neon DB or pull their existing cloud data. Subsequent reviews trigger a debounced background sync (`/api/sync`).
 
-## Learn More
+**Q: Why are the Hadiths stored in static JSON instead of the database?**
+A: To ensure a zero-cost, high-performance architecture. Storing 14,000+ read-only hadiths in Postgres would consume the free tier. By serving them as static assets, they are cached globally via Vercel's Edge CDN, leaving the Postgres DB exclusively for tiny, dynamic user progress data.
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Getting Started
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clone the repository.
+2. Install dependencies: `npm install`
+3. Setup `.env.local` with `DATABASE_URL`, `AUTH_SECRET`, and `AUTH_GOOGLE_*` keys.
+4. Push the schema: `npx drizzle-kit push`
+5. Run the development server: `npm run dev`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Built with craftsmanship to preserve the Sunnah.*

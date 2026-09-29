@@ -1,0 +1,18 @@
+# Mutqin - Technical Architectural Overview
+
+Mutqin (مُتقِن) is an open-source spaced repetition (SRS) Hadith memorization application. It is built with Next.js 15, React, Tailwind CSS v4, and the Free Spaced Repetition Scheduler (FSRS) algorithm to help Muslims systematically memorize Sahih Al-Bukhari and Sahih Muslim.
+
+## Architecture
+- Frontend: Next.js 15 (App Router), React, Tailwind CSS v4.
+- Persistence: Neon Serverless Postgres (via Drizzle ORM).
+- Authentication: Auth.js v5 (Google OAuth).
+- Local State: Offline-first architecture using localStorage for zero-latency interactions and PWA service workers for offline availability.
+- Spaced Repetition: Client-side ts-fsrs implementation.
+- TTS: Web Speech API for Arabic recitation.
+
+## Data Model
+- 14,736 Sahih hadiths stored as static JSON for maximum CDN delivery speed and zero database cost.
+- User data (streaks, FSRS cards, review logs) stored in relational Postgres database.
+
+## Synchronization Strategy
+The app utilizes a "Lazy Auth" / Offline-first approach. Users can utilize the app fully as guests. Upon logging in, a conflict resolution protocol ensures local data is safely merged or overwritten based on user preference, with a debounced background sync engine maintaining cloud parity.
